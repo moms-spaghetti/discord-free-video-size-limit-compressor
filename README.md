@@ -1,1 +1,1 @@
-# discord-free-video-limit-compressor
+# discord-free-video-size-limit-compressor
