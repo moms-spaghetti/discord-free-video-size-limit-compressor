@@ -97,14 +97,15 @@ for /f "tokens=1 delims=." %%b in ("%DURATION%") do set "DURATION=%%b"
 
 :: eval bitrate
 set /a TOTAL_KBPS=%TARGET_MB:.=0%*8192/%DURATION%
-set /a VIDEO_KBPS=%TOTAL_KBPS% - %AUDIO_KBPS%
-set /a BUF_KBPS=%VIDEO_KBPS% * 2
+set /a SAFE_TOTAL_KBPS=%TOTAL_KBPS% * 92 / 100
+set /a VIDEO_KBPS=%SAFE_TOTAL_KBPS% - %AUDIO_KBPS%
+set /a BUF_KBPS=%VIDEO_KBPS%
 
-echo pass 1
-ffmpeg -y -i "%INPUT%" -c:v h264_nvenc -rc vbr -preset slow -b:v %VIDEO_KBPS%k -maxrate %VIDEO_KBPS%k -bufsize %BUF_KBPS%k -pass 1 -an %SCALE_FILTER% -f null NUL
+echo encode
+ffmpeg -y -i "%INPUT%" -c:v h264_nvenc -rc cbr -preset slow ^
+-b:v %VIDEO_KBPS%k -maxrate %VIDEO_KBPS%k -bufsize %BUF_KBPS%k ^
+-c:a aac -b:a %AUDIO_KBPS%k %AUDIO_VOLUME% %SCALE_FILTER% "%OUTPUT%"
 
-echo pass 2
-ffmpeg -y -i "%INPUT%" -c:v h264_nvenc -rc vbr -preset slow -b:v %VIDEO_KBPS%k -maxrate %VIDEO_KBPS%k -bufsize %BUF_KBPS%k -pass 2 -c:a aac -b:a %AUDIO_KBPS%k %AUDIO_VOLUME% %SCALE_FILTER% "%OUTPUT%"
 
 :: 1st pass logs remove
 del ffmpeg2pass-0.log 2>nul
