@@ -5,7 +5,7 @@ setlocal EnableDelayedExpansion
 set "DEFAULT_AUDIO_BOOST=22"
 
 :: config
-set "PROBE_RES="
+set "PROBE_RES_HEIGHT="
 set "TARGET_MB=9"
 set "AUDIO_KBPS=128"
 set "AUDIO_VOLUME=-af volume=0dB"
@@ -21,15 +21,20 @@ set "ERR_NO_FILE_NAME=ERR_NO_FILE_NAME: must provide a full path to a valid file
 set "ERR_SCALE_FILTER_UNKNOWN=ERR_SCALE_FILTER_UNKNOWN: video_scale argument unknown"
 set "ERR_AUDIO_VOLUME_NAN=ERR_AUDIO_VOLUME_NAN: audio_boost argument not a number"
 set "ERR_AUDIO_VOLUME_OUT_OF_RANGE=ERR_AUDIO_VOLUME_OUT_OF_RANGE: audio_boost argument out of range"
+set "ERR_PROBE_RES_HEIGHT=ERR_PROBE_RES_HEIGHT: cannot read stream file height"
 
 :: messages
 set "MSG_SCALE_FILTER_VALUES=MSG_SCALE_FILTER_VALUES: video_scale supported values 1080,720,640,540,480"
 set "MSG_SCALE_FILTER_IGNORE=MSG_SCALE_FILTER_IGNORE: video_scale if only applying audio_boost pass an underscore _"
 set "MSG_AUDIO_VOLUME_VALUES=MSG_AUDIO_VOLUME_VALUES: audio_boost supported values between 1-30"
 
-:: video file width
-set "CMD=ffprobe -v error -select_streams v:0 -show_entries stream=width -of csv=p=0 "%INPUT%""
-for /f "usebackq delims=" %%a in (`!CMD!`) do set "PROBE_RES=%%a"
+set "CMD=ffprobe -v error -select_streams v:0 -show_entries stream=height -of csv=p=0 "%INPUT%""
+for /f "usebackq delims=" %%a in (`!CMD!`) do set "PROBE_RES_HEIGHT=%%a"
+
+if "%PROBE_RES_HEIGHT%"=="" (
+	echo %ERR_PROBE_RES_HEIGHT% 
+	exit /b 1
+)
 
 :: file
 if "%~1"=="" (
@@ -40,9 +45,9 @@ if "%~1"=="" (
 
 :: video size
 if "%~2"=="" (
-	set "SCALE_FILTER=-vf scale=-2:%PROBE_RES%"
+	set "SCALE_FILTER=-vf scale=-2:%PROBE_RES_HEIGHT%"
 ) else if "%~2"=="_" (
-		set "SCALE_FILTER=-vf scale=-2:%PROBE_RES%"
+		set "SCALE_FILTER=-vf scale=-2:%PROBE_RES_HEIGHT%"
 	) else (
 		set "AUDIO_KBPS=96"
 			if /i "%~2"=="1440" (
@@ -68,6 +73,11 @@ if "%~2"=="" (
 				exit /b 1 
 	)
 )
+
+:: print stats for run
+for /f "tokens=2 delims=:" %%a in ("%SCALE_FILTER%") do set "FILTER_HEIGHT=%%a"
+echo audio boost set to: +%DEFAULT_AUDIO_BOOST%db
+echo video resolution height set to: %FILTER_HEIGHT%px
 
 :: audio volume
 if "%~3"=="" (
