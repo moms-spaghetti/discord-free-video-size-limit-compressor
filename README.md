@@ -29,7 +29,7 @@ if you don't you'll need to add ffmpeg to the path, search `add ffmpeg to path w
 
 ## args 
 |position|arg|desc|example|required|
-|---|---|---|---|
+|---|---|---|---|---|
 |0|filepath|full path to your file|c:\videos\myvideofile.mp4|yes|
 |1|video_scale|reduce output quality, leave blank to output original resolution, choose from list of supported output resolutions below, audio quality is lowered from 128Kbps to 96Kbps|640|no|
 |2|audio_boost|increase the audio volume of the output in dB from 1 to 30|6|no|
