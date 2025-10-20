@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-:: set these 
+:: set this
 set "DEFAULT_AUDIO_BOOST=22"
 
 :: config
